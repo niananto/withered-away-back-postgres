@@ -1,34 +1,31 @@
-const oracledb = require("oracledb");
-// const oracleDbInst = require("oracledb/lib/oracledb");
-oracledb.outFormat = oracledb.OBJECT;
-oracledb.autoCommit = true;
+require('dotenv').config({ path: '../.env' });
+const { Client, Pool } = require('pg');
 
-var connection = undefined;
+const conString = process.env.DB_URI || 'postgres://postgres:postgres@localhost:5432/postgres';
+const client = new Client(conString);
+client.connect(function(err) {
+  if(err) {
+    return console.error('could not connect to postgres', err);
+  }
+  return console.log('connected to postgres');
+});
 
-async function db_query(query, params) {
-    if (connection === undefined) {
-        connection = await oracledb.getConnection({
-            user: process.env.DB_USER,
-            password: process.env.DB_PASS,
-            connectString: process.env.DB_CONNECTIONSTRING,
-        });
-        console.log("database connected successfully");
-    }
+// const q = `SELECT * FROM ${tableName}`;
+// const params = [];
+// client.query(q, params, function(err, result) {
+//   if(err) {
+//     return console.error('error running query', err);
+//   }
+//   console.log(result.rows);
+// });
 
-    try {
-        let result = await connection.execute(query, params);
-        console.log("query ran : ", query, params);
-        return {
-            success: true,
-            data: result.rows,
-        };
-    } catch (e) {
-        console.log("ERROR For : ", query, params);
-        console.log(e);
-        return {
-            success: false,
-        };
-    }
-}
+// var tableName = 'people';
+// var id = 1;
+// const q = `SELECT * FROM ${tableName} WHERE ID=$1`;
+//   const params = [id];
+//   client.query(q, params, (err, result) => {
+//     if (err) return console.error("error running query", q, err);
+//     console.log(result.rows);
+//   });
 
-exports.db_query = db_query;
+module.exports = client;
